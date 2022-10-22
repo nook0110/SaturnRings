@@ -3,7 +3,7 @@
 
 class AstronomicalObject
 {
-protected:
+public:
 	sf::Vector2f center_of_mass = sf::Vector2f();
 	sf::Vector2f speed = -center_of_mass;
 	float mass = 10.f;
@@ -22,6 +22,7 @@ public:
 class Asteroid : public AstronomicalObject
 {
 public:
+	Asteroid() = default;
 	Asteroid(sf::Vector2f pos, float mass) : AstronomicalObject(pos, mass) {};
 
 };

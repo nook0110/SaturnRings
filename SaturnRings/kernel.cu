@@ -8,27 +8,32 @@
 
 #include <iostream>
 
-
+#include <vector>
 
 int main()
 {
-	std::array<Asteroid, 3> arrayA = { Asteroid(sf::Vector2f(10,10), (float)30000),
-		Asteroid(sf::Vector2f(30,10), (float)30000),
-		Asteroid(sf::Vector2f(10,30), (float)30000) };
-	auto x = ForceComputer<3>(arrayA);
+	constexpr size_t n = 1000;
 
-	x.findAllForces();
+	std::vector<Asteroid*> arrayA(n);
 
-
-	for (auto f : x.h_forces)
+	for (auto& a : arrayA)
 	{
-		for (auto f2 : f)
-		{
-			std::cout << f2.x << " " << f2.y << "   ";
-		}
-		std::cout << "\n";
+		a = new Asteroid();
+		a->center_of_mass =sf::Vector2f(rand() % 100, rand() % 100);
+		a->mass = rand() % 10000;
 	}
 
+	auto x = new ForceComputer(arrayA);
+
+
+	x->findAllForces();
+
+	x->resize(10);
+
+	for (auto a : arrayA)
+	{
+		delete a;;
+	}
 
 	return 0;
 }

@@ -3,6 +3,7 @@
 
 #include <list>
 #include <array>
+#include <vector>
 
 #include <cuda_runtime_api.h>
 #include <device_launch_parameters.h>
@@ -34,26 +35,33 @@ struct VectorGPU
 
 
 
-template<size_t size>
+
 class ForceComputer
 {
 public:
 	VectorGPU* d_positions;
-	std::array<VectorGPU, size> h_positions;
+	std::vector<VectorGPU> h_positions;
 
 	float* d_masses;
-	std::array<float, size> h_masses;
+	std::vector<float> h_masses;
 
-	const size_t pairs = size * size;
 	VectorGPU* d_forces;
-	std::array<std::array< VectorGPU, size>, size> h_forces;
+	std::vector<std::vector<VectorGPU>> h_forces;
 
-	std::array<Asteroid, size> asteroids;
+	std::vector<Asteroid*> asteroids;
 
-	ForceComputer();
-	ForceComputer(const std::array<Asteroid, size>& asteroids);
+	ForceComputer(size_t size);
+	ForceComputer(const std::vector<Asteroid*>& asteroids);
+
+	void resize(size_t size);
+
+	~ForceComputer();
+
+	Asteroid* getAsteroid(size_t ind) { return asteroids[ind]; }
+	const Asteroid* getAsteroid(size_t ind) const { return asteroids[ind]; }
 
 	void findAllForces();
+
 };
 
 
@@ -72,9 +80,15 @@ void compute(const VectorGPU* positions, const float* masses, size_t size, Vecto
 
 	long long index = first * size + second;
 
+	if (index >= size * size)
+	{
+		return;
+	}
+
 	auto delta = positions[second] - positions[first];
 	auto distance = hypot((double)delta.x, (double)delta.y);
-	forces[index] = delta * (gravitational_constant * masses[first] * masses[second] / (distance * distance * distance));
+	forces[index] = delta;
+	//forces[index] = delta * (gravitational_constant * masses[first] * masses[second] / (distance * distance * distance));
 }
 
 
@@ -84,36 +98,61 @@ void compute(const VectorGPU* positions, const float* masses, size_t size, Vecto
 
 
 
-template<size_t size>
-ForceComputer<size>::ForceComputer()
-{
-	
-}
 
-template<size_t size>
-ForceComputer<size>::ForceComputer(const std::array<Asteroid, size>& asteroids)
+ForceComputer::ForceComputer(const std::vector<Asteroid*>& asteroids)
 	:asteroids(asteroids)
 {
-	
-}
-
-template<size_t size>
-void ForceComputer<size>::findAllForces()
-{
+	auto size = asteroids.size();
+	auto pairs = size * size;
 
 	cudaMalloc(&d_positions, size * sizeof(decltype(*d_positions)));
 	cudaMalloc(&d_masses, size * sizeof(decltype(*d_masses)));
 	cudaMalloc(&d_forces, pairs * sizeof(decltype(*d_forces)));
 
-	float* x = (float*)malloc(size * sizeof(float));
-	float* y = (float*)malloc(size * sizeof(float));
+	h_positions.resize(size);
+	h_masses.resize(size);
+	h_forces.resize(size, std::vector<VectorGPU>(size));
+}
+
+void ForceComputer::resize(size_t size)
+{
+	cudaFree(d_positions);
+	cudaFree(d_masses);
+	cudaFree(d_forces);
+
+
+	const auto pairs = size * size;
+	h_positions.resize(size);
+	h_masses.resize(size);
+	h_forces.resize(size);
+	for (auto row : h_forces)
+	{
+		row.resize(size);
+	}
+	
+
+	cudaMalloc(&d_positions, size * sizeof(decltype(*d_positions)));
+	cudaMalloc(&d_masses, size * sizeof(decltype(*d_masses)));
+	cudaMalloc(&d_forces, pairs * sizeof(decltype(*d_forces)));
+}
+
+ForceComputer::~ForceComputer()
+{
+	cudaFree(d_positions);
+	cudaFree(d_masses);
+	cudaFree(d_forces);
+}
+
+void ForceComputer::findAllForces()
+{
+	auto size = asteroids.size();
+	auto pairs = size * size;
 
 
 	for (int ind = 0; ind < asteroids.size(); ++ind)
 	{
-		h_positions[ind] = asteroids[ind].getCenter();
-		h_masses[ind] = asteroids[ind].getMass();
-		x[ind] = 100.f;
+		h_positions[ind] = asteroids[ind]->getCenter();
+		h_masses[ind] = asteroids[ind]->getMass();
 	}
 
 	cudaMemcpy(d_positions, h_positions.data(), h_positions.size() * sizeof(decltype(*d_positions)), cudaMemcpyKind::cudaMemcpyHostToDevice);
@@ -123,9 +162,12 @@ void ForceComputer<size>::findAllForces()
 	dim3 threadsPerBlock(10, 10);
 	dim3 blocks((size + threadsPerBlock.x - 1) / threadsPerBlock.x, (size + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
-	compute<<<blocks, threadsPerBlock>>>(d_positions, d_masses, size, d_forces);
+	compute << <blocks, threadsPerBlock >> > (d_positions, d_masses, size, d_forces);
 
-	cudaMemcpy(h_forces.data(), d_forces, pairs * sizeof(decltype(*d_forces)), cudaMemcpyKind::cudaMemcpyDeviceToHost);
+	for (int row = 0; row < size; ++row)
+	{
+		cudaMemcpy(h_forces[row].data(), d_forces+row*size, size * sizeof(decltype(*d_forces)), cudaMemcpyKind::cudaMemcpyDeviceToHost);
+	}
 }
 
 
