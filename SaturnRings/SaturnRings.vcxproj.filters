@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Asteroids.cpp">
+      <Filter>src\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\..\..\imgui\imgui-SFML.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\..\..\imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\..\..\imgui\imgui_tables.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\..\..\imgui\imgui_widgets.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\..\..\imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI.cpp">
+      <Filter>src\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Space.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{35ba7211-b811-41d2-b25c-7a2f210ae09d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{05a6b47d-b495-4eb6-83eb-1304ba5b19ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Sources">
+      <UniqueIdentifier>{e81583de-b560-4228-8d59-e78e8fef3969}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\CudaHeaders">
+      <UniqueIdentifier>{51d7887f-b2c7-408b-9c1b-ad77ee76106a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Headers">
+      <UniqueIdentifier>{0ee56b38-575f-452a-aa42-de247bf54a8d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ForceCompute.cuh">
+      <Filter>src\CudaHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Asteroids.h">
+      <Filter>src\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI.h">
+      <Filter>src\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Space.h">
+      <Filter>src\Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="kernel.cu">
+      <Filter>src\Sources</Filter>
+    </CudaCompile>
+  </ItemGroup>
+</Project>
